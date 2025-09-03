@@ -1,0 +1,267 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Hub</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f6f9;
+      color: #333;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark {
+      background: #1e1e1e;
+      color: #f4f4f4;
+    }
+    header {
+      background: #4CAF50;
+      color: white;
+      text-align: center;
+      padding: 1rem;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      background: #388E3C;
+      padding: 0.5rem;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .container {
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 20px;
+    }
+    h2 {
+      color: #4CAF50;
+    }
+    body.dark h2 {
+      color: #81C784;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: background 0.3s;
+    }
+    body.dark .card {
+      background: #2b2b2b;
+    }
+    .profile-card {
+      text-align: center;
+    }
+    .profile-card img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 10px;
+    }
+    .homework-list {
+      list-style: none;
+      padding: 0;
+    }
+    .homework-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f9f9f9;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+    body.dark .homework-list li {
+      background: #3a3a3a;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .toggle-btn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #333;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    input, select {
+      padding: 5px;
+      margin: 5px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📚 Student Hub</h1>
+    <p>Your Notes & Homework Tracker</p>
+  </header>  <nav>
+    <a href="#profile">Profile</a>
+    <a href="#notes">Notes</a>
+    <a href="#homework">Homework Tracker</a>
+  </nav><button class="toggle-btn" onclick="toggleDarkMode()">🌙</button>
+
+  <div class="container">
+    <!-- Student Profile -->
+    <section id="profile" class="card profile-card">
+      <h2>👩‍🎓 Student Profile</h2>
+      <img id="profilePic" src="https://via.placeholder.com/100" alt="Profile Picture">
+      <input type="file" id="uploadPic" accept="image/*"><br>
+      <input type="text" id="studentName" placeholder="Enter your name">
+      <input type="text" id="studentClass" placeholder="Enter your class">
+      <button onclick="saveProfile()">Save Profile</button>
+    </section><div>
+  <!-- Notes Section -->
+  <section id="notes" class="card">
+    <h2>📖 Notes Section</h2>
+    <div class="subject">
+      <h3>Mathematics</h3>
+      <a href="#">Download Algebra Notes</a><br>
+      <a href="#">Download Geometry Notes</a>
+    </div>
+    <div class="subject">
+      <h3>Science</h3>
+      <a href="#">Download Physics Notes</a><br>
+      <a href="#">Download Biology Notes</a>
+    </div>
+    <div class="subject">
+      <h3>English</h3>
+      <a href="#">Download Grammar Notes</a><br>
+      <a href="#">Download Literature Notes</a>
+    </div>
+  </section>
+
+  <!-- Homework Tracker Section -->
+  <section id="homework" class="card">
+    <h2>📝 Homework Tracker</h2>
+    <form id="homeworkForm">
+      <input type="text" id="subject" placeholder="Subject" required>
+      <input type="text" id="task" placeholder="Homework Task" required>
+      <input type="date" id="deadline" required>
+      <button type="submit">Add Homework</button>
+    </form>
+    <ul id="homeworkList" class="homework-list"></ul>
+  </section>
+</div>
+
+  </div>  <script>
+    const form = document.getElementById('homeworkForm');
+    const list = document.getElementById('homeworkList');
+
+    // Load saved data
+    window.onload = () => {
+      const saved = JSON.parse(localStorage.getItem('homework')) || [];
+      saved.forEach(item => addHomework(item.subject, item.task, item.deadline));
+
+      if(localStorage.getItem('darkMode') === 'enabled'){
+        document.body.classList.add('dark');
+      }
+
+      const profile = JSON.parse(localStorage.getItem('profile'));
+      if(profile){
+        document.getElementById('studentName').value = profile.name;
+        document.getElementById('studentClass').value = profile.class;
+        if(profile.pic) document.getElementById('profilePic').src = profile.pic;
+      }
+    }
+
+    // Add homework function
+    function addHomework(subject, task, deadline){
+      const li = document.createElement('li');
+      li.innerHTML = `<strong>${subject}</strong>: ${task} (Due: ${deadline}) 
+        <button onclick="markDone(this)">✔ Done</button>
+        <button onclick="deleteHomework(this)">🗑 Delete</button>`;
+      list.appendChild(li);
+      saveData();
+    }
+
+    // Form submit
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const subject = document.getElementById('subject').value;
+      const task = document.getElementById('task').value;
+      const deadline = document.getElementById('deadline').value;
+      addHomework(subject, task, deadline);
+      form.reset();
+    });
+
+    // Mark as done
+    function markDone(btn){
+      btn.parentElement.style.textDecoration = 'line-through';
+      saveData();
+    }
+
+    // Delete homework
+    function deleteHomework(btn){
+      btn.parentElement.remove();
+      saveData();
+    }
+
+    // Save homework to localStorage
+    function saveData(){
+      const data = [];
+      document.querySelectorAll('#homeworkList li').forEach(li => {
+        const text = li.textContent.replace('✔ Done🗑 Delete','').trim();
+        const parts = text.split(':');
+        if(parts.length > 1){
+          const subject = parts[0].trim();
+          const taskPart = parts[1].split('(Due:');
+          const task = taskPart[0].trim();
+          const deadline = taskPart[1]?.replace(')','').trim() || '';
+          data.push({subject, task, deadline});
+        }
+      });
+      localStorage.setItem('homework', JSON.stringify(data));
+    }
+
+    // Dark mode toggle
+    function toggleDarkMode(){
+      document.body.classList.toggle('dark');
+      if(document.body.classList.contains('dark')){
+        localStorage.setItem('darkMode', 'enabled');
+      } else {
+        localStorage.setItem('darkMode', 'disabled');
+      }
+    }
+
+    // Save profile
+    function saveProfile(){
+      const name = document.getElementById('studentName').value;
+      const studentClass = document.getElementById('studentClass').value;
+      const pic = document.getElementById('profilePic').src;
+      localStorage.setItem('profile', JSON.stringify({name, class: studentClass, pic}));
+      alert('Profile saved!');
+    }
+
+    // Upload picture
+    document.getElementById('uploadPic').addEventListener('change', function(){
+      const reader = new FileReader();
+      reader.onload = function(e){
+        document.getElementById('profilePic').src = e.target.result;
+      }
+      reader.readAsDataURL(this.files[0]);
+    });
+  </script></body>
+</html>
